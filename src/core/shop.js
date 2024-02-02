@@ -5,7 +5,8 @@ import { getCategories, getFilteredProducts } from "./apicore";
 import Checkbox from "./checkbox";
 import RadioBox from "./radiobox";
 import { prices } from "./fixedprices";
-import {  Row, Col } from "react-bootstrap";
+import { Row, Col } from "react-bootstrap";
+import CardSkeleton from './cardskeleton';
 
 const Shop = () => {
   const [myFilters, setMyFilters] = useState({
@@ -17,6 +18,7 @@ const Shop = () => {
   const [skip, setSkip] = useState(0);
   const [size, setSize] = useState(0);
   const [filteredResults, setFilteredResults] = useState([]);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   const init = () => {
     getCategories()
@@ -35,8 +37,9 @@ const Shop = () => {
   };
 
   const loadFilteredResults = (newFilters) => {
-    // console.log(newFilters);
+    setLoading(true); // Set loading to true when fetching data
     getFilteredProducts(skip, limit, newFilters).then((data) => {
+      setLoading(false); // Set loading to false once data is fetched
       if (data.error) {
         setError(data.error);
       } else {
@@ -49,17 +52,16 @@ const Shop = () => {
 
   const loadMore = () => {
     let toSkip = skip + limit;
-    // console.log(newFilters);
-    getFilteredProducts(toSkip, limit, myFilters.filters).then(data => {
-        if (data.error) {
-            setError(data.error);
-        } else {
-            setFilteredResults([...filteredResults, ...data.data]);
-            setSize(data.size);
-            setSkip(toSkip);
-        }
+    getFilteredProducts(toSkip, limit, myFilters.filters).then((data) => {
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setFilteredResults([...filteredResults, ...data.data]);
+        setSize(data.size);
+        setSkip(toSkip);
+      }
     });
-};
+  };
 
   const loadMoreButton = () => {
     return (
@@ -71,9 +73,10 @@ const Shop = () => {
       )
     );
   };
+
   useEffect(() => {
     init();
-    loadFilteredResults(skip, limit, myFilters.filters);
+    loadFilteredResults(myFilters.filters);
   }, []);
 
   const handleFilters = (filters, filterBy) => {
@@ -106,16 +109,17 @@ const Shop = () => {
       description="Search and find books of your choice"
       className="container-fluid"
     >
+      {error && <div className="alert alert-danger">{error}</div>}
       <Row>
         <Col md={4}>
-          <h4>Filter by categories</h4>
+        <h4>Filter by categories</h4>
           <ul>
             <Checkbox
               categories={categories}
               handleFilters={(filters) => handleFilters(filters, "category")}
             />
           </ul>
-  
+
           <h4>Filter by price range</h4>
           <div>
             <RadioBox
@@ -127,11 +131,21 @@ const Shop = () => {
         <Col md={8}>
           <h2 className="mb-4">Products</h2>
           <Row>
-            {filteredResults.map((product, i) => (
-              <Col md={6} lg={4} xl={3} key={i}>
-                <Card product={product} />
-              </Col>
-            ))}
+            {loading ? (
+              // Display 4 CardSkeleton horizontally
+              Array.from({ length: 4 }).map((_, index) => (
+                <Col xs={12} sm={6} md={3} key={index}>
+                  <CardSkeleton cards={1} />
+                </Col>
+              ))
+            ) : (
+              // Display actual product cards once data is loaded
+              filteredResults.map((product, i) => (
+                <Col xs={12} sm={6} md={6} lg={4} key={i}>
+                  <Card product={product} />
+                </Col>
+              ))
+            )}
           </Row>
           <hr />
           {loadMoreButton()}
@@ -140,5 +154,6 @@ const Shop = () => {
     </Layout>
   );
 };
+
 
 export default Shop;
