@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getCategories, list } from "./apicore";
-import Card from "./card";
-
+import { Container, Row, Col, Form, Button } from "react-bootstrap";
+import Card from './card';
 const Search = () => {
   const [data, setData] = useState({
     categories: [],
@@ -65,51 +65,48 @@ const Search = () => {
       <div>
         <h2 className="mt-4 mb-4">{searchMessage(searched, results)}</h2>
 
-        <div className="row">
+        <Row>
           {results.map((product, i) => (
-            <div className="col-4 mb-3">
-            <Card key={i} product={product} />
-            </div>
+            <Col xs={12} sm={6} md={4} lg={3} className="mb-3">
+              <Card key={i} product={product} />
+            </Col>
           ))}
-        </div>
+        </Row>
       </div>
     );
   };
 
   const searchForm = () => (
-    <form onSubmit={searchSubmit}>
-      <span className="input-group-text">
-        <div className="input-group input-group-lg">
-          <div className="input-group-prepend">
-            <select className="btn mr-2" onChange={handleChange("category")}>
-              <option value="All">All</option>
-              {categories.map((c, i) => (
-                <option key={i} value={c._id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <input
-            type="search"
-            className="form-control"
-            onChange={handleChange("search")}
-            placeholder="Search by name"
-          />
-        </div>
-        <div className="btn input-group-append" style={{ border: "none" }}>
-          <button className="input-group-text">Search</button>
-        </div>
-      </span>
-    </form>
+    <Form onSubmit={searchSubmit}>
+      <Form.Group controlId="searchForm">
+        <Form.Label srOnly>Search</Form.Label>
+        <Form.Control
+          type="search"
+          placeholder="Search by name"
+          onChange={handleChange("search")}
+        />
+        <Form.Control as="select" onChange={handleChange("category")}>
+          <option value="All">All</option>
+          {categories.map((c, i) => (
+            <option key={i} value={c._id}>
+              {c.name}
+            </option>
+          ))}
+        </Form.Control>
+        <Button type="submit" variant="primary">
+          Search
+        </Button>
+      </Form.Group>
+    </Form>
   );
 
   return (
-    <div className="row">
-      <div className="container mb-3">{searchForm()}</div>
-      <div className="container-fluid mb-3">{searchedProducts(results)}</div>
-    </div>
+    <Container fluid>
+      <Container className="mb-3">{searchForm()}</Container>
+      <Container fluid className="mb-3">
+        {searchedProducts(results)}
+      </Container>
+    </Container>
   );
 };
 
